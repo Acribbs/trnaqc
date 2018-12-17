@@ -368,21 +368,21 @@ def build_samtools_stats(infile, outfile):
     P.run(statement)
 
 
-@transform(map_with_bowtie,
-           regex("mapping.dir/(\S+).bam"),
-           add_inputs(os.path.join(PARAMS["bowtie_genome_dir"],
-                            PARAMS["bowtie_genome"] + ".fa")),
+@transform(post_mapping_cluster,
+           regex("post_mapping_bams.dir/(\S+)_trna.bam"),
+           add_inputs(mature_trna_cluster)),
            r"genome_statistics.dir/\1.genomecov")
 def genome_coverage(infiles, outfile):
     """runs bedtoools genomecov to look at the coverage over all
        samples """
 
-    infile, genome = infiles
+    infile, genome_cluster = infiles
 
-    statement = """bedtools genomecov -ibam %(infile)s -g %(genome)s > %(outfile)s"""
+    statement = """
+                cat %(genome_cluster)s | cgat fasta2bed --method=ungapped > tRNA-mapping.dir/genome_cluster.bed &&
+                bedtools genomecov -d ibam %(infile)s -g tRNA-mapping.dir/genome_cluster.bed > %(outfile)s
+                """
 
-# Maybe should use hg38_mature.fa instead, would have to add input from add_cca_tail
-# should use -d to look at every position
     P.run(statement)
 
 ################################################
@@ -598,6 +598,7 @@ def remove_reads(infiles, outfile):
     statement = """samtools view -h %(infile)s> %(temp_file)s && 
                    perl %(cribbslab)s/perl/removeGenomeMapper.pl %(pre_trna_genome)s %(temp_file)s %(temp_file1)s &&
                    samtools view -b %(temp_file1)s > %(outfile)s"""
+
 
     job_memory = "50G"
     P.run(statement)
