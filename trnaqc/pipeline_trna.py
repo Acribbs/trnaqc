@@ -710,7 +710,7 @@ def genome_coverage(infiles, outfile):
 
     statement = """
                 cat %(genome_cluster)s | cgat fasta2bed --method=ungapped > tRNA-mapping.dir/genome_cluster.bed &&
-                bedtools genomecov -d ibam %(infile)s -g tRNA-mapping.dir/genome_cluster.bed > %(outfile)s
+                bedtools genomecov -d -ibam %(infile)s -g tRNA-mapping.dir/genome_cluster.bed > %(outfile)s
                 """
 
     P.run(statement)
