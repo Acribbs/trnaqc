@@ -367,24 +367,6 @@ def build_samtools_stats(infile, outfile):
 
     P.run(statement)
 
-
-@transform(post_mapping_cluster,
-           regex("post_mapping_bams.dir/(\S+)_trna.bam"),
-           add_inputs(mature_trna_cluster)),
-           r"genome_statistics.dir/\1.genomecov")
-def genome_coverage(infiles, outfile):
-    """runs bedtoools genomecov to look at the coverage over all
-       samples """
-
-    infile, genome_cluster = infiles
-
-    statement = """
-                cat %(genome_cluster)s | cgat fasta2bed --method=ungapped > tRNA-mapping.dir/genome_cluster.bed &&
-                bedtools genomecov -d ibam %(infile)s -g tRNA-mapping.dir/genome_cluster.bed > %(outfile)s
-                """
-
-    P.run(statement)
-
 ################################################
 # Perform mapping of tRNA's as set out in Hoffmann et al 2018
 ################################################
@@ -716,6 +698,22 @@ def filter_vcf(infile, outfile):
 
     P.run(statement)
 
+@transform(post_mapping_cluster,
+           regex("post_mapping_bams.dir/(\S+)_trna.bam"),
+           add_inputs(mature_trna_cluster),
+           r"genome_statistics.dir/\1.genomecov")
+def genome_coverage(infiles, outfile):
+    """runs bedtoools genomecov to look at the coverage over all
+       samples """
+
+    infile, genome_cluster = infiles
+
+    statement = """
+                cat %(genome_cluster)s | cgat fasta2bed --method=ungapped > tRNA-mapping.dir/genome_cluster.bed &&
+                bedtools genomecov -d ibam %(infile)s -g tRNA-mapping.dir/genome_cluster.bed > %(outfile)s
+                """
+
+    P.run(statement)
 
 ##############################################
 # Identify tRNA fragment/full length position
